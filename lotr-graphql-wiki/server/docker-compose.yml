@@ -1,0 +1,18 @@
+# docker-compose.yml
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: lotr_graphql_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lotr_user
+      POSTGRES_PASSWORD: lotr_password
+      POSTGRES_DB: lotr_wiki_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - lotr_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  lotr_postgres_data:
