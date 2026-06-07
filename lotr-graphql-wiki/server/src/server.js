@@ -23,9 +23,13 @@ await server.start();
 
 app.use(
   "/graphql",
-  helmet({
+  helmet(),
+  //   To use Apollo server comment out the line above and use this instead:
+  /*
+ helmet({
     contentSecurityPolicy: false,
   }),
+*/
   cors({
     origin: "http://localhost:5500",
     methods: ["POST"],
