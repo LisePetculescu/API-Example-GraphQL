@@ -1,0 +1,42 @@
+type Character {
+  id: ID!
+  name: String!
+  race: String!
+  realm: String
+  birthYear: String
+  weapon: String
+  affiliation: String
+  shortDescription: String!
+  biography: String!
+  imageUrl: String
+  quotes: [Quote!]!
+}
+
+type Quote {
+  id: ID!
+  text: String!
+  character: Character!
+}
+
+input CharacterInput {
+  name: String!
+  race: String!
+  realm: String
+  birthYear: String
+  weapon: String
+  affiliation: String
+  shortDescription: String!
+  biography: String!
+  imageUrl: String
+}
+
+type Query {
+  characters(search: String, race: String, page: Int, limit: Int): [Character!]!
+  character(id: ID!): Character
+}
+
+type Mutation {
+  createCharacter(input: CharacterInput!): Character!
+  updateCharacter(id: ID!, input: CharacterInput!): Character!
+  deleteCharacter(id: ID!): Boolean!
+}
