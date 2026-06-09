@@ -2,6 +2,34 @@
 
 GraphQL API example for a Lord of the Rings wiki. The backend uses Node.js, Express, Apollo Server, Prisma 7, PostgreSQL, and Docker Compose.
 
+## The request flow in the api
+
+Request
+    ↓
+Express (app.js)
+    ↓
+Helmet (sec.)
+    ↓
+CORS (sec.)
+    ↓
+express.json()
+    ↓
+/graphql endpoint
+    ↓
+Apollo Server
+    ↓
+Resolver
+    ↓
+Service
+    ↓
+Repository
+    ↓
+Prisma
+    ↓
+PostgreSQL
+    ↓
+Response returned
+
 ## Database models
 
 The database models are written in:
@@ -22,7 +50,6 @@ So there are two different schemas:
 schema.prisma   = database tables/models
 schema.graphql  = GraphQL API contract
 ```
-
 
 ## Start the project with Docker Compose
 

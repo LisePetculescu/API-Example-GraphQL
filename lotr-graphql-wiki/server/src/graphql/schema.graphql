@@ -30,13 +30,34 @@ input CharacterInput {
   imageUrl: String
 }
 
-type Query {
-  characters(search: String, race: String, page: Int, limit: Int): [Character!]!
-  character(id: ID!): Character
+input QuoteInput {
+  text: String!
+  characterId: ID!
 }
 
+input QuoteUpdateInput {
+  text: String!
+}
+
+# Quries --> getting data from db
+type Query {
+  # Character queries 
+  characters(search: String, race: String, page: Int, limit: Int): [Character!]!
+  character(id: ID!): Character
+  # Quote queries 
+  quotes: [Quote!]!
+  quote(id: ID!): Quote
+}
+
+# Mutations --> changing data in the db
 type Mutation {
+  # Character mutations
   createCharacter(input: CharacterInput!): Character!
   updateCharacter(id: ID!, input: CharacterInput!): Character!
   deleteCharacter(id: ID!): Boolean!
+
+  # Quote mutations
+  createQuote(input: QuoteInput!): Quote!
+  updateQuote(id: ID!, input: QuoteUpdateInput!): Quote!
+  deleteQuote(id: ID!): Boolean!
 }

@@ -1,42 +1,27 @@
-// src/server.js
 import "dotenv/config";
 
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express5";
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
 import { readFileSync } from "fs";
+
+import app from "./app.js";
 import { resolvers } from "./graphql/resolvers/index.js";
 
-const app = express();
-
+// Loads GraphQL SDL schema
 const typeDefs = readFileSync("./src/graphql/schema.graphql", "utf8");
 
+// Configures Apollo GraphQL server
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  csrfPrevention: true,
+  typeDefs, // Defines available queries, mutations and types
+  resolvers, // Maps GraphQL operations to backend services
+  csrfPrevention: true, // Apollo's protections against browser-based CSRF attacks
 });
 
 await server.start();
 
 app.use(
   "/graphql",
-  helmet(),
-  //   To use Apollo server comment out the line above and use this instead:
-  /*
- helmet({
-    contentSecurityPolicy: false,
-  }),
-*/
-  cors({
-    origin: "http://localhost:5500",
-    methods: ["POST"],
-    allowedHeaders: ["Content-Type", "Apollo-Require-Preflight"],
-  }),
-  express.json({ limit: "100kb" }),
-  expressMiddleware(server),
+  expressMiddleware(server), // hands requests over to the apollo server
 );
 
 app.listen(4000, () => {
