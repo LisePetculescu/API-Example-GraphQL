@@ -1,8 +1,6 @@
 import characterRepository from "../repositories/characterRepository.js";
 import { characterSchema } from "../validation/characterValidation.js";
 
-// This is where the API integrates with the Database
-
 const getCharacters = async (args) => {
   const page = Math.max(Number(args.page) || 1, 1);
   const limit = Math.min(Number(args.limit) || 10, 50);

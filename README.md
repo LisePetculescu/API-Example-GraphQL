@@ -6,6 +6,8 @@ GraphQL API example for a Lord of the Rings wiki. The backend uses Node.js, Expr
 
 ![flow diagram](flow-diagram.png)
 
+---
+
 ## Database Models
 
 The database models are written in:
@@ -18,6 +20,8 @@ lotr-graphql-wiki/server/prisma/schema.prisma
 - It specifies all database models, fields, relationships, and constraints.
 - Prisma uses the schema to generate the Prisma Client and create database migrations.
 - PostgreSQL tables are created based on the Prisma schema.
+
+---
 
 ## GraphQL SDL Schema - (Schema Definition Language)
 
@@ -36,6 +40,8 @@ lotr-graphql-wiki/server/src/graphql/schema.graphql
   - relationships
 
 - Apollo Server uses the schema to validate incoming GraphQL requests and determine which operations are available to clients.
+
+---
 
 ## Start the project with Docker Compose
 
@@ -70,9 +76,11 @@ The API runs at:
 http://localhost:4000/graphql
 ```
 
+---
+
 ## Run database migrations
 
-In the docker compose the command below runs resets the prisma migrations, seeds the DB and starts the api app.
+In the Docker Compose configuration, the command below resets the database, applies all Prisma migrations, seeds the database, and starts the API.
 
 ```bash
 command: sh -c "npx prisma migrate reset --force && npm run seed && npm start"
@@ -94,12 +102,21 @@ lotr-graphql-wiki/server/prisma/seed.js
 
 ### How to keep the postgres volume
 
-Right nowthe db gets reset everytime you run the docker compose. To keep the db volume wihtout it resseting use the second commandline in the docker compose after the first run:
+The database is currently recreated on every startup because the Docker Compose command uses:
 
 ```bash
-    # command: sh -c "npx prisma migrate reset --force && npm run seed && npm start"
-    command: sh -c "npx prisma migrate deploy && npm start"
+command: sh -c "npx prisma migrate reset --force && npm run seed && npm start"
 ```
+
+To keep the PostgreSQL volume and existing data, **after the first run** replace the startup command with:
+
+```bash
+command: sh -c "npx prisma migrate deploy && npm start"
+```
+
+This applies any pending migrations without deleting existing data.
+
+---
 
 ## Useful Docker commands
 
@@ -133,54 +150,9 @@ Open PostgreSQL CLI inside the database container:
 docker compose exec postgres psql -U lotr_user -d lotr_wiki_db
 ```
 
-## Test the API manually
+---
 
-Use Postman with:
-
-```txt
-Method: POST
-URL: http://localhost:4000/graphql
-```
-
-Headers:
-
-```txt
-Content-Type: application/json
-Apollo-Require-Preflight: true
-```
-
-Body type:
-
-```txt
-raw JSON
-```
-
-Example query:
-
-```json
-{
-  "query": "query { characters { id name race shortDescription } }"
-}
-```
-
-Example expected response after seeding:
-
-```json
-{
-  "data": {
-    "characters": [
-      {
-        "id": "1",
-        "name": "Aragorn",
-        "race": "Man",
-        "shortDescription": "The heir of Isildur and rightful king of Gondor."
-      }
-    ]
-  }
-}
-```
-
-## Postman test collection
+## Postman Test Collection
 
 The Postman collection is included here:
 
@@ -198,11 +170,15 @@ Set or verify the collection variable:
 
 ```txt
 baseUrl = http://localhost:4000
+
+createdCharacterId = ""
+
+createdQuoteId = ""
 ```
 
-The collection contains positive and negative tests.
+The collection contains both positive and negative tests.
 
-Positive tests include:
+### Positive Tests
 
 ```txt
 Query all characters
@@ -210,44 +186,111 @@ Query character by ID
 Create character
 Update created character
 Delete created character
+
+Query all quotes
+Query quote by ID
+Create quote
+Update quote
+Delete quote
 ```
 
-Negative/security tests include:
+These tests verify that the GraphQL API can successfully retrieve and modify data in PostgreSQL through Prisma ORM.
+
+### Negative Tests
 
 ```txt
 Query non-existing character
-Create character with missing required field
-Create character with invalid image URL
-XSS-like input attempt
-SQL injection-like search attempt
+Create character with missing required name
+Create character with invalid imageUrl
+Delete character with invalid ID
+
+Query non-existing quote
+Create quote with missing required text
+Update quote with invalid ID
+Delete quote with invalid ID
 ```
 
-## Security notes
+### Security Tests
 
-### SQL injection prevention
-
-The API uses Prisma ORM query methods such as:
-
-```js
-prisma.character.findMany();
-prisma.character.findUnique();
-prisma.character.create();
-prisma.character.update();
-prisma.character.delete();
+```txt
+XSS-like input should be rejected or sanitized
+SQL injection-like search should not break API
 ```
 
-The code does not build SQL queries by concatenating user input into raw SQL strings.
+### Utility / Schema Exploration Queries
 
-### XSS prevention
+These use GraphQL introspection to explore the schema and discover available operations and fields.
 
-The API validates user input with Zod. Important fields have minimum and maximum lengths, and `imageUrl` must be a valid URL.
-
-### CSRF prevention
-
-Apollo Server has CSRF prevention enabled:
-
-```js
-csrfPrevention: true;
+```txt
+Get available queries + mutations
+Get Character fields
+Get Quote fields
 ```
 
-The Express CORS setup only allows POST requests and requires expected headers.
+---
+
+## Security
+
+Security is implemented in multiple layers throughout the application.
+
+### HTTP Security Headers (Helmet)
+
+**Location**: src/security/securityMiddleware.js
+
+**Applied in**: src/app.js
+
+Helmet automatically adds security-related HTTP headers to responses, helping protect clients against common browser-based attacks such as XSS, and clickjacking by adding browser security headers such as Content-Security-Policy (CSP), which restricts where scripts can be loaded from and executed.
+
+### CORS Protection
+
+**Location**: src/security/securityMiddleware.js
+
+**Applied in**: src/app.js
+
+CORS restricts which browser frontends are allowed to access the API. Only approved origins, methods, and headers are accepted.
+
+### Request Size Limiting
+
+**Location**: src/app.js
+
+`express.json({ limit: "100kb" })`
+
+Incoming JSON request bodies larger than 100 KB are automatically rejected to reduce the impact of resource exhaustion and DoS attacks.
+
+### GraphQL Schema Validation
+
+**Location**: src/graphql/schema.graphql
+
+Apollo Server validates all incoming GraphQL requests against the SDL schema before any resolver is executed.
+
+### CSRF Protection
+
+**Location**: src/server.js
+
+`csrfPrevention: true`
+
+Apollo Server's built-in CSRF protection rejects suspicious browser requests before they reach the GraphQL resolvers.
+
+### Input Validation
+
+**Location**: src/validation/
+
+**Files**:
+
+- characterValidation.js
+- quoteValidation.js
+
+User input is validated using Zod schemas before data is processed.
+
+**Validation includes:**
+
+- Required fields
+- Field length limits
+- URL validation
+- HTML tag rejection
+
+### SQL Injection Prevention
+
+**Location**: src/repositories/
+
+Database access is performed through Prisma ORM. Prisma generates parameterized queries, which prevents user input from being interpreted as executable SQL.
