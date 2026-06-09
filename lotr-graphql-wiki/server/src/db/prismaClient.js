@@ -6,6 +6,6 @@ const adapter = new PrismaPg(process.env.DATABASE_URL);
 
 const prisma = new PrismaClient({
   adapter,
-});
+}); // Creates the Prisma client used to communicate with PostgreSQL
 
 export default prisma;

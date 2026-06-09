@@ -49,7 +49,8 @@ type Query {
   quote(id: ID!): Quote
 }
 
-# Mutations --> changing data in the db
+# Mutations --> changing data in the db, and returning something
+# --> nameOfMutation(input: expectedInputType): expectedOutput
 type Mutation {
   # Character mutations
   createCharacter(input: CharacterInput!): Character!

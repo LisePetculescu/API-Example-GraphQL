@@ -2,35 +2,11 @@
 
 GraphQL API example for a Lord of the Rings wiki. The backend uses Node.js, Express, Apollo Server, Prisma 7, PostgreSQL, and Docker Compose.
 
-## The request flow in the api
+## Request/Response Flow
 
-Request
-    ↓
-Express (app.js)
-    ↓
-Helmet (sec.)
-    ↓
-CORS (sec.)
-    ↓
-express.json()
-    ↓
-/graphql endpoint
-    ↓
-Apollo Server
-    ↓
-Resolver
-    ↓
-Service
-    ↓
-Repository
-    ↓
-Prisma
-    ↓
-PostgreSQL
-    ↓
-Response returned
+![flow diagram](flow-diagram.png)
 
-## Database models
+## Database Models
 
 The database models are written in:
 
@@ -38,18 +14,28 @@ The database models are written in:
 lotr-graphql-wiki/server/prisma/schema.prisma
 ```
 
-The GraphQL SDL schema is written in:
+- The Prisma schema defines the database structure.
+- It specifies all database models, fields, relationships, and constraints.
+- Prisma uses the schema to generate the Prisma Client and create database migrations.
+- PostgreSQL tables are created based on the Prisma schema.
+
+## GraphQL SDL Schema - (Schema Definition Language)
+
+The SDL schema is written in:
 
 ```txt
 lotr-graphql-wiki/server/src/graphql/schema.graphql
 ```
 
-So there are two different schemas:
+- The GraphQL SDL (Schema Definition Language) schema defines the API contract.
+  It specifies all available:
+  - types
+  - queries
+  - mutations
+  - inputs
+  - relationships
 
-```txt
-schema.prisma   = database tables/models
-schema.graphql  = GraphQL API contract
-```
+- Apollo Server uses the schema to validate incoming GraphQL requests and determine which operations are available to clients.
 
 ## Start the project with Docker Compose
 
@@ -62,7 +48,7 @@ cd lotr-graphql-wiki/server
 Start PostgreSQL and the GraphQL server:
 
 ```bash
-docker compose up --build -d
+docker compose up -d --build
 ```
 
 Check that both containers are running:
@@ -86,10 +72,10 @@ http://localhost:4000/graphql
 
 ## Run database migrations
 
-After the containers are running, apply the Prisma migrations inside the server container:
+In the docker compose the command below runs resets the prisma migrations, seeds the DB and starts the api app.
 
 ```bash
-docker compose exec server npx prisma migrate deploy
+command: sh -c "npx prisma migrate reset --force && npm run seed && npm start"
 ```
 
 This creates the database tables from the committed Prisma migration files.
@@ -100,18 +86,19 @@ For local development, if you change `prisma/schema.prisma` and need to create a
 npx prisma migrate dev --name your_migration_name
 ```
 
-## Seed the database
-
-Seed the database with LOTR character data:
-
-```bash
-docker compose exec server npm run seed
-```
-
 The seed file is here:
 
 ```txt
 lotr-graphql-wiki/server/prisma/seed.js
+```
+
+### How to keep the postgres volume
+
+Right nowthe db gets reset everytime you run the docker compose. To keep the db volume wihtout it resseting use the second commandline in the docker compose after the first run:
+
+```bash
+    # command: sh -c "npx prisma migrate reset --force && npm run seed && npm start"
+    command: sh -c "npx prisma migrate deploy && npm start"
 ```
 
 ## Useful Docker commands
@@ -119,7 +106,7 @@ lotr-graphql-wiki/server/prisma/seed.js
 Start containers:
 
 ```bash
-docker compose up --build -d
+docker compose up -d --build
 ```
 
 Stop containers:
@@ -198,13 +185,13 @@ Example expected response after seeding:
 The Postman collection is included here:
 
 ```txt
-lotr-graphql-wiki/server/LOTR_GraphQL_API_Postman_Collection.json
+lotr-graphql-wiki/server/tests/LOTR GraphQL API - GraphQL Mode Tests.postman_collection
 ```
 
 Import it into Postman:
 
 ```txt
-Postman → Import → File → select LOTR_GraphQL_API_Postman_Collection.json
+Postman → Import → File → select LOTR GraphQL API - GraphQL Mode Tests.postman_collection
 ```
 
 Set or verify the collection variable:
@@ -242,11 +229,11 @@ SQL injection-like search attempt
 The API uses Prisma ORM query methods such as:
 
 ```js
-prisma.character.findMany()
-prisma.character.findUnique()
-prisma.character.create()
-prisma.character.update()
-prisma.character.delete()
+prisma.character.findMany();
+prisma.character.findUnique();
+prisma.character.create();
+prisma.character.update();
+prisma.character.delete();
 ```
 
 The code does not build SQL queries by concatenating user input into raw SQL strings.
@@ -260,7 +247,7 @@ The API validates user input with Zod. Important fields have minimum and maximum
 Apollo Server has CSRF prevention enabled:
 
 ```js
-csrfPrevention: true
+csrfPrevention: true;
 ```
 
 The Express CORS setup only allows POST requests and requires expected headers.

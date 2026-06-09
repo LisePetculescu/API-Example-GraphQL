@@ -1,0 +1,1149 @@
+{
+  "info": {
+    "_postman_id": "f79f1761-57dc-4e3c-8665-6b72d81df2a6",
+    "name": "LOTR GraphQL API - GraphQL Mode Tests",
+    "description": "GraphQL-mode Postman collection for LOTR GraphQL API. Includes positive, negative, and security-oriented requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29403275"
+  },
+  "item": [
+    {
+      "name": "Character Tests",
+      "item": [
+        {
+          "name": "Positive - Query all characters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });",
+                  "pm.test(\"characters is an array\", function () { pm.expect(json.data.characters).to.be.an(\"array\"); });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetCharacters($page: Int, $limit: Int) {\n  characters(page: $page, limit: $limit) {\n    id\n    name\n    race\n    realm\n    shortDescription\n    quotes {\n        text\n    }\n  }\n}",
+                "variables": "{\"page\": 1, \"limit\": 10}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Query character by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });",
+                  "pm.test(\"character has expected fields\", function () { pm.expect(json.data.character).to.have.property(\"name\"); pm.expect(json.data.character.quotes).to.be.an(\"array\"); });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetCharacter($id: ID!) {\n  character(id: $id) {\n    id\n    name\n    race\n    biography\n    quotes {\n      id\n      text\n    }\n  }\n}",
+                "variables": "{\"id\": \"5\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Create character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });",
+                  "pm.test(\"created character has id\", function () { pm.expect(json.data.createCharacter.id).to.exist; });",
+                  "pm.collectionVariables.set(\"createdCharacterId\", json.data.createCharacter.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateCharacter($input: CharacterInput!) {\n  createCharacter(input: $input) {\n    id\n    name\n    race\n    shortDescription\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"name\": \"Boromir\",\n    \"race\": \"Man\",\n    \"realm\": \"Gondor\",\n    \"birthYear\": \"2978 Third Age\",\n    \"weapon\": \"Sword and shield\",\n    \"affiliation\": \"Fellowship of the Ring\",\n    \"shortDescription\": \"A warrior of Gondor and member of the Fellowship.\",\n    \"biography\": \"Boromir was the eldest son of Denethor II and travelled with the Fellowship.\",\n    \"imageUrl\": \"https://example.com/boromir.jpg\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Update created character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });",
+                  "pm.test(\"weapon was updated\", function () { pm.expect(json.data.updateCharacter.weapon).to.eql(\"Horn of Gondor\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateCharacter($id: ID!, $input: CharacterInput!) {\n  updateCharacter(id: $id, input: $input) {\n    id\n    name\n    race\n    weapon\n  }\n}",
+                "variables": "{\n  \"id\": \"{{createdCharacterId}}\",\n  \"input\": {\n    \"name\": \"Boromir\",\n    \"race\": \"Man\",\n    \"realm\": \"Gondor\",\n    \"birthYear\": \"2978 Third Age\",\n    \"weapon\": \"Horn of Gondor\",\n    \"affiliation\": \"Fellowship of the Ring\",\n    \"shortDescription\": \"A warrior of Gondor and member of the Fellowship.\",\n    \"biography\": \"Boromir was the eldest son of Denethor II and travelled with the Fellowship.\",\n    \"imageUrl\": \"https://example.com/boromir.jpg\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Delete created character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });",
+                  "pm.test(\"delete returns true\", function () { pm.expect(json.data.deleteCharacter).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteCharacter($id: ID!) {\n  deleteCharacter(id: $id)\n}",
+                "variables": "{\"id\": \"{{createdCharacterId}}\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Query non-existing character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.expect([200]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"GraphQL errors exist\", function () { pm.expect(json.errors).to.be.an(\"array\").that.is.not.empty; });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetCharacter($id: ID!) {\n  character(id: $id) {\n    id\n    name\n  }\n}",
+                "variables": "{\"id\": \"999999\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Create character missing required name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 400\", function () { pm.expect([400]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"GraphQL errors exist\", function () { pm.expect(json.errors).to.be.an(\"array\").that.is.not.empty; });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateCharacter($input: CharacterInput!) {\n  createCharacter(input: $input) {\n    id\n    name\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"race\": \"Man\",\n    \"shortDescription\": \"Missing name should fail.\",\n    \"biography\": \"This should fail because name is required.\",\n    \"imageUrl\": \"https://example.com/test.jpg\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Create character with invalid imageUrl",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.expect([200]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"GraphQL errors exist\", function () { pm.expect(json.errors).to.be.an(\"array\").that.is.not.empty; });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateCharacter($input: CharacterInput!) {\n  createCharacter(input: $input) {\n    id\n    name\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"name\": \"Invalid Image Character\",\n    \"race\": \"Elf\",\n    \"shortDescription\": \"Invalid URL should fail.\",\n    \"biography\": \"This should fail validation because imageUrl is not a URL.\",\n    \"imageUrl\": \"not-a-url\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Delete character with invalid ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {\r",
+                  "  pm.expect([200]).to.include(pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"GraphQL errors exist\", function () {\r",
+                  "  const hasErrors = Array.isArray(json.errors) && json.errors.length > 0;\r",
+                  "  const isFalse = json.data && json.data.deleteCharacter === false;\r",
+                  "  pm.expect(hasErrors || isFalse).to.eql(true);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteCharacter($id: ID!) {\r\n  deleteCharacter(id: $id)\r\n}",
+                "variables": "{\"id\": \"99999\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Quote Tests",
+      "item": [
+        {
+          "name": "Positive - Query all quotes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });\r",
+                  "pm.test(\"quotes is an array\", function () { pm.expect(json.data.quotes).to.be.an(\"array\"); });\r",
+                  "\r",
+                  "// extra (recommended)\r",
+                  "pm.test(\"each quote has text and character name\", function () {\r",
+                  "  json.data.quotes.forEach(q => {\r",
+                  "    pm.expect(q).to.have.property(\"text\");\r",
+                  "    pm.expect(q).to.have.property(\"character\");\r",
+                  "    pm.expect(q.character).to.have.property(\"name\");\r",
+                  "  });\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query {\r\n  quotes {\r\n    text\r\n    character {\r\n      name\r\n    }\r\n  }\r\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Query quote by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });\r",
+                  "pm.test(\"quote exists\", function () { pm.expect(json.data.quote).to.not.be.null; });\r",
+                  "\r",
+                  "pm.test(\"quote has expected fields\", function () {\r",
+                  "  pm.expect(json.data.quote).to.have.property(\"id\");\r",
+                  "  pm.expect(json.data.quote).to.have.property(\"text\");\r",
+                  "  pm.expect(json.data.quote).to.have.property(\"character\");\r",
+                  "  pm.expect(json.data.quote.character).to.have.property(\"id\");\r",
+                  "  pm.expect(json.data.quote.character).to.have.property(\"name\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetQuote($id: ID!) {\r\n  quote(id: $id) {\r\n    id\r\n    text\r\n    character {\r\n        id\r\n      name\r\n    }\r\n  }\r\n}\r\n",
+                "variables": "{\"id\": \"5\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Create quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });\r",
+                  "pm.test(\"created quote has id\", function () { pm.expect(json.data.createQuote.id).to.exist; });\r",
+                  "pm.test(\"created quote has text\", function () { pm.expect(json.data.createQuote.text).to.be.a(\"string\"); });\r",
+                  "pm.test(\"created quote has character\", function () {\r",
+                  "  pm.expect(json.data.createQuote.character).to.have.property(\"id\");\r",
+                  "  pm.expect(json.data.createQuote.character).to.have.property(\"name\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"createdQuoteId\", json.data.createQuote.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  createQuote(input: {\r\n    characterId: \"5\"\r\n    text: \"For Frodo.\"\r\n  }) {\r\n    id\r\n    text\r\n    character {\r\n        id\r\n      name\r\n    }\r\n  }\r\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Update quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });\r",
+                  "pm.test(\"updateQuote exists\", function () { pm.expect(json.data.updateQuote).to.not.be.null; });\r",
+                  "\r",
+                  "// assumes your mutation sets text to a known value like \"Updated quote text\"\r",
+                  "pm.test(\"quote text was updated\", function () {\r",
+                  "  pm.expect(json.data.updateQuote.text).to.eql(\"Updated quote text.\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  updateQuote(id: \"26\", input: {\r\n    text: \"Updated quote text.\"\r\n  }) {\r\n    id\r\n    text\r\n  }\r\n}\r\n",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Positive - Delete quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.response.to.have.status(200); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"No GraphQL errors\", function () { pm.expect(json.errors).to.be.undefined; });\r",
+                  "pm.test(\"deleteQuote returns true\", function () { pm.expect(json.data.deleteQuote).to.eql(true); });\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  deleteQuote(id: \"24\")\r\n}\r\n",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative – Update quote with invalid ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {\r",
+                  "  pm.expect([200]).to.include(pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"GraphQL errors exist\", function () {\r",
+                  "  const hasErrors = Array.isArray(json.errors) && json.errors.length > 0;\r",
+                  "  const isNull = json.data && json.data.updateCharacter === null;\r",
+                  "  pm.expect(hasErrors || isNull).to.eql(true);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  updateQuote(id: \"99998\", input: {\r\n    text: \"Updated quote text.\"\r\n  }) {\r\n    id\r\n    text\r\n  }\r\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Query non-existing quote",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query GetQuote($id: ID!) {\r\n  quote(id: $id) {\r\n    id\r\n    text\r\n    character {\r\n        id\r\n      name\r\n    }\r\n  }\r\n}",
+                "variables": "{\"id\": \"99999\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Create quote with missing required text",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 400\", function () { pm.expect([400]).to.include(pm.response.code); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"GraphQL errors exist\", function () {\r",
+                  "  pm.expect(json.errors).to.be.an(\"array\").that.is.not.empty;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  createQuote(input: {\r\n    characterId: \"5\"\r\n  }) {\r\n    id\r\n    text\r\n    character {\r\n        id\r\n      name\r\n    }\r\n  }\r\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Delete quote with invalid ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.expect([200]).to.include(pm.response.code); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"GraphQL errors exist\", function () {\r",
+                  "  const hasErrors = Array.isArray(json.errors) && json.errors.length > 0;\r",
+                  "  const isFalse = json.data && json.data.deleteQuote === false;\r",
+                  "  pm.expect(hasErrors || isFalse).to.eql(true);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  deleteQuote(id: \"99999\")\r\n}\r\n",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negative - Update quote with invalid ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.expect([200, 400]).to.include(pm.response.code); });\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"GraphQL errors exist\", function () {\r",
+                  "  const hasErrors = Array.isArray(json.errors) && json.errors.length > 0;\r",
+                  "  const isNull = json.data && json.data.updateQuote === null;\r",
+                  "  pm.expect(hasErrors || isNull).to.eql(true);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\r\n  updateQuote(id: \"999999\", input: {\r\n    text: \"Updated quote text.\"\r\n  }) {\r\n    id\r\n    text\r\n  }\r\n}\r\n",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "Security - XSS-like input should be rejected or sanitized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () { pm.expect([200]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"XSS is not accepted as executable raw HTML\", function () {",
+                  "  if (json.errors) {",
+                  "    pm.expect(json.errors).to.be.an(\"array\").that.is.not.empty;",
+                  "  } else {",
+                  "    const created = json.data.createCharacter;",
+                  "    pm.expect(created.name).to.not.include(\"<script>\");",
+                  "    pm.expect(created.biography).to.not.include(\"<img\");",
+                  "  }",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateCharacter($input: CharacterInput!) {\n  createCharacter(input: $input) {\n    id\n    name\n    biography\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"name\": \"<script>alert('xss')</script>\",\n    \"race\": \"Elf\",\n    \"shortDescription\": \"XSS test input.\",\n    \"biography\": \"<img src=x onerror=alert('xss')>\",\n    \"imageUrl\": \"https://example.com/test.jpg\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Security - SQL injection-like search should not break API",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"No GraphQL errors returned\", function () {",
+                  "  pm.expect(json.errors).to.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test(\"No internal SQL/database error leaked\", function () {",
+                  "  const body = pm.response.text().toLowerCase();",
+                  "",
+                  "  pm.expect(body).to.not.include(\"syntax error\");",
+                  "  pm.expect(body).to.not.include(\"prisma\");",
+                  "  pm.expect(body).to.not.include(\"postgres\");",
+                  "  pm.expect(body).to.not.include(\"database\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response shape is valid GraphQL\", function () {",
+                  "  pm.expect(json.data.characters).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"SQL injection payload does not return unintended data\", function () {",
+                  "  pm.expect(json.data.characters.length).to.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query SearchCharacters($search: String) {\n  characters(search: $search, page: 1, limit: 10) {\n    id\n    name\n  }\n}",
+                "variables": "{\"search\": \"' OR 1=1 --\"}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Not tests, just queries",
+      "item": [
+        {
+          "name": "Get available queries + mutations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query IntrospectionQuery {\n  __schema {\n    queryType {\n      fields {\n        name\n      }\n    }\n    mutationType {\n      fields {\n        name\n      }\n    }\n  }\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Character Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  __type(name: \"Character\") {\n    fields {\n      name\n      type {\n        kind\n        name\n        ofType {\n          kind\n          name\n        }\n      }\n    }\n  }\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Quotes fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Apollo-Require-Preflight",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "{\n  __type(name: \"Quote\") {\n    fields {\n      name\n    }\n  }\n}",
+                "variables": ""
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "createdCharacterId",
+      "value": ""
+    },
+    {
+      "key": "createdQuoteId",
+      "value": ""
+    }
+  ]
+}

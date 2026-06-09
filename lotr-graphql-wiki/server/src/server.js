@@ -15,14 +15,14 @@ const PORT = process.env.PORT || 4000;
 const server = new ApolloServer({
   typeDefs, // Defines available queries, mutations and types
   resolvers, // Maps GraphQL operations to backend services
-  csrfPrevention: true, // Apollo's protections against browser-based CSRF attacks
+  csrfPrevention: true, // Apollo's protections against CSRF attacks from a browser
 });
 
 await server.start();
 
 app.use(
   "/graphql",
-  expressMiddleware(server), // hands requests over to the apollo server
+  expressMiddleware(server), // Integrates clients (Postman/frontend) with the GraphQL API
 );
 
 app.listen(PORT, () => {
