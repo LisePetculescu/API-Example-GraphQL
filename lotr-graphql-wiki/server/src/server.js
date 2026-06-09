@@ -9,6 +9,7 @@ import { resolvers } from "./graphql/resolvers/index.js";
 
 // Loads GraphQL SDL schema
 const typeDefs = readFileSync("./src/graphql/schema.graphql", "utf8");
+const PORT = process.env.PORT || 4000;
 
 // Configures Apollo GraphQL server
 const server = new ApolloServer({
@@ -24,6 +25,6 @@ app.use(
   expressMiddleware(server), // hands requests over to the apollo server
 );
 
-app.listen(4000, () => {
-  console.log("GraphQL API running on http://localhost:4000/graphql");
+app.listen(PORT, () => {
+  console.log(`GraphQL API running on http://localhost:${PORT}/graphql`);
 });

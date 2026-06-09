@@ -34,7 +34,7 @@ const characters = [
     shortDescription: "An elven prince and master archer.",
     biography: "Legolas was the son of Thranduil of the Woodland Realm. He represented the elves in the Fellowship and became close friends with Gimli.",
     imageUrl: "https://example.com/legolas.jpg",
-    quotes: ["He senses danger before others notice it.", "His friendship with Gimli becomes a symbol of old rivalries healing."],
+    quotes: ["And you have my bow.", "What about side by side with a friend?"],
   },
   {
     name: "Gimli",
@@ -46,7 +46,7 @@ const characters = [
     shortDescription: "A dwarf warrior from the Lonely Mountain.",
     biography: "Gimli was the son of Glóin and represented the dwarves in the Fellowship. He was brave, loyal, and formed an unlikely friendship with Legolas.",
     imageUrl: "https://example.com/gimli.jpg",
-    quotes: ["And my axe!", "His friendship with Legolas challenges old divisions."],
+    quotes: ["And my axe!", "I cannot jump the distance, you'll have to toss me."],
   },
   {
     name: "Frodo Baggins",
